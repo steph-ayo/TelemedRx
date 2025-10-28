@@ -1,0 +1,12 @@
+@import url("https://fonts.googleapis.com/css2?family=Doto:wght@100..900&family=Lobster+Two:ital,wght@0,400;0,700;1,400;1,700&display=swap");
+
+@import "tailwindcss";
+
+@theme {
+  --font-doto: "Doto", sans-serif;
+
+  --color-primary: #f25924;
+
+  --color-background: #faf7f7;
+  --color-text: #333548bf;
+}
