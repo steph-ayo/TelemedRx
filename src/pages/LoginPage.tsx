@@ -9,6 +9,7 @@ import { useNavigate } from "react-router-dom";
 import logo from "../assets/logo/leadway-logo.png";
 import toast from "react-hot-toast";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
+import { AiOutlineLoading3Quarters } from "react-icons/ai";
 
 const LoginPage = () => {
   //Initialize Firebase authentication and navigation
@@ -21,6 +22,29 @@ const LoginPage = () => {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [showPassword, setShowPassword] = useState(false);
+  const [emailError, setEmailError] = useState("");
+
+  // Email validation function
+  const validateEmail = (email: string) => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
+  };
+
+  // Handle email change
+  const handleEmailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    setEmail(value);
+
+    // Validate email while typing
+    if (value.length > 0 && !validateEmail(value)) {
+      setEmailError("Please enter a valid email");
+    } else {
+      setEmailError("");
+    }
+  };
+
+  // Check if form is valid
+  const isFormValid = email.length > 0 && password.length > 0 && !emailError;
 
   //Function to handle sign-in with Google
   const signInWithGoogle = async () => {
@@ -30,7 +54,7 @@ const LoginPage = () => {
     signInWithPopup(auth, new GoogleAuthProvider())
       .then((response) => {
         console.log(response.user.uid);
-        navigate("/dashboard");
+        navigate("/main");
       })
       .catch((error) => {
         console.log(error);
@@ -44,12 +68,15 @@ const LoginPage = () => {
     setAuthing(true);
     setError("");
 
+    // Add a 2 seconds delay
+    await new Promise((resolve) => setTimeout(resolve, 2000));
+
     //Use Firebase to sign in email and password
     signInWithEmailAndPassword(auth, email, password)
       .then((response) => {
         console.log(response.user.uid);
         toast.success("Signed in successfully!");
-        navigate("/dashboard");
+        navigate("/main");
       })
       .catch((error) => {
         console.log(error);
@@ -105,8 +132,8 @@ const LoginPage = () => {
         {/* Login container */}
         <div className="flex flex-col px-10 md:px-20 justify-center min-h-screen">
           <div className="items-start mb-6">
-            <h2 className="text-2xl font-bold mb-3">TelemedRx</h2>
-            <h5 className="text-md font-semibold">
+            <h2 className="text-3xl font-bold mb-5">TelemedRx</h2>
+            <h5 className="text-lg font-semibold">
               Unifying telemedicine & acute requests, pharmacy operations, and
               billing in <span className="text-orange-700">real time.</span>
             </h5>
@@ -114,16 +141,26 @@ const LoginPage = () => {
 
           <div className="items-center justify-center ">
             <form className="space-y-4">
+              {/* Email field */}
               <div>
                 <label className="block text-gray-600 mb-2">Email</label>
                 <input
                   type="email"
                   placeholder="Enter your email"
-                  className="w-full border-none rounded-lg px-3 py-2 focus:outline-none  bg-gray-100  focus:bg-gray-200 text-sm  placeholder:text-sm"
+                  className={`w-full border-none rounded-lg px-3 py-2 focus:outline-none text-sm placeholder:text-sm ${
+                    emailError
+                      ? "bg-red-50 focus:bg-red-100 ring-2 ring-red-400"
+                      : "bg-gray-100 focus:bg-gray-200"
+                  }`}
                   value={email}
-                  onChange={(e) => setEmail(e.target.value)}
+                  onChange={handleEmailChange}
                 />
+                {emailError && (
+                  <p className="text-red-500 text-sm mt-1">{emailError}</p>
+                )}
               </div>
+
+              {/* Password field */}
               <div>
                 <label className="block text-gray-600 mb-2">Password</label>
                 <div className="relative">
@@ -145,7 +182,9 @@ const LoginPage = () => {
               </div>
 
               {/* Display error message */}
-              {error && <div className="text-red-500 mb-4">{error}</div>}
+              {error && (
+                <div className="text-red-500 text-sm mb-4">{error}</div>
+              )}
 
               <p className="text-sm text-gray-700 font-semibold text-right cursor-pointer hover:underline">
                 <a href="">Forgot Password?</a>
@@ -154,11 +193,22 @@ const LoginPage = () => {
               {/* Button to login */}
               <button
                 type="button"
-                className="w-full bg-red-400 hover:bg-red-500 text-white font-semibold py-2 rounded-lg cursor-pointer transition-all"
+                className={`w-full font-semibold py-2 rounded-lg transition-all flex items-center justify-center gap-2 ${
+                  isFormValid && !authing
+                    ? "bg-red-500 text-white cursor-pointer"
+                    : "bg-red-400 text-white cursor-not-allowed"
+                }`}
                 onClick={signInWithEmail}
-                disabled={authing}
+                disabled={!isFormValid || authing}
               >
-                Login
+                {authing ? (
+                  <>
+                    <AiOutlineLoading3Quarters className="animate-spin text-xl" />
+                    <span>Loading...</span>
+                  </>
+                ) : (
+                  "Login"
+                )}
               </button>
               <>
                 {/* Divider with 'or' text */}
