@@ -3,7 +3,7 @@ import { Routes, Route, Navigate } from "react-router-dom";
 import LoginPage from "./pages/LoginPage";
 import SignUpPage from "./pages/SignUpPage";
 import AuthRoute from "./routes/AuthRoute";
-import DashboardPage from "./pages/DashboardPage";
+import DashboardPage from "./pages/DashboardPage/DashboardPage";
 import "./config/firebase";
 import FormPage from "./pages/FormPage";
 import MainPage from "./pages/MainPage";

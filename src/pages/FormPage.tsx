@@ -27,35 +27,97 @@ const FormPage = () => {
   const [uploading, setUploading] = useState(false);
   const [fileName, setFileName] = useState<string | null>(null);
   const [date] = useState(() => new Date().toLocaleString());
+  const [isDragging, setIsDragging] = useState(false);
+
+  const handleFileChange = (files: FileList | null) => {
+    if (files && files.length > 0) {
+      setFileName(files[0].name);
+    }
+  };
+
+  const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    setIsDragging(true);
+  };
+
+  const handleDragLeave = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    setIsDragging(false);
+  };
+
+  const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    setIsDragging(false);
+
+    const files = e.dataTransfer.files;
+    if (files && files.length > 0) {
+      const file = files[0];
+      // Check if file is image or PDF
+      if (file.type.startsWith("image/") || file.type === "application/pdf") {
+        setFileName(file.name);
+        // Update the form's file input
+        const dataTransfer = new DataTransfer();
+        dataTransfer.items.add(file);
+        const fileInput = document.getElementById(
+          "file-upload"
+        ) as HTMLInputElement;
+        if (fileInput) {
+          fileInput.files = dataTransfer.files;
+        }
+      } else {
+        alert("Please upload an image or PDF file");
+      }
+    }
+  };
 
   const onSubmit = async (data: FormData) => {
     try {
       setUploading(true);
 
-      // 👇 Mock upload logic (replace with Firebase / Zapier later)
       const file = data.file?.[0];
-      let fileLink = "";
+      let fileBase64 = "";
+      let fileName = "";
 
       if (file) {
-        // simulate upload delay
-        await new Promise((res) => setTimeout(res, 1500));
-        fileLink = `https://fake-storage/${file.name}`;
+        const reader = new FileReader();
+        fileBase64 = await new Promise<string>((resolve, reject) => {
+          reader.onload = () =>
+            resolve(reader.result?.toString().split(",")[1] || "");
+          reader.onerror = reject;
+          reader.readAsDataURL(file);
+        });
+        fileName = file.name;
       }
 
-      const formDataToSave = {
+      const payload = {
         ...data,
-        fileLink,
-        status: "Not Sorted",
-        dateCreated: date,
+        fileBase64,
+        fileName,
+        date,
+        updatedBy: "Contact Center Agent",
       };
 
-      console.log("✅ Form Submitted:", formDataToSave);
-      alert("Request submitted successfully!");
+      const response = await fetch(
+        "https://script.google.com/macros/s/AKfycbweb4lKeBPRPSJ4rvgatwDelnXEKxg0Fq7H2RADbmH1fcqqZnbPb4A1msPyJ400WujCkA/exec",
+        {
+          method: "POST",
+          body: JSON.stringify(payload),
+          headers: { "Content-Type": "application/json" },
+        }
+      );
 
-      reset();
-      setFileName(null);
+      const result = await response.json();
+
+      if (result.success) {
+        alert("✅ Request submitted successfully!");
+        reset();
+        setFileName(null);
+      } else {
+        alert("❌ Failed: " + result.error);
+      }
     } catch (err) {
-      console.error("❌ Error submitting form:", err);
+      console.error(err);
+      alert("Something went wrong!");
     } finally {
       setUploading(false);
     }
@@ -143,6 +205,18 @@ const FormPage = () => {
               <p className="text-red-500 text-sm">{errors.phone.message}</p>
             )}
           </div>
+
+          {/* Address */}
+          <div>
+            <label className="block font-medium mb-1">Address</label>
+            <textarea
+              {...register("address", { required: "Address is required" })}
+              className="w-full border rounded-lg p-2 h-20"
+            ></textarea>
+            {errors.address && (
+              <p className="text-red-500 text-sm">{errors.address.message}</p>
+            )}
+          </div>
         </div>
 
         {/* RIGHT SIDE */}
@@ -151,7 +225,7 @@ const FormPage = () => {
           <div>
             <label className="block font-medium mb-1">Diagnosis</label>
             <textarea
-              {...register("diagnosis", { required: "Diagnosis is required" })}
+              {...register("diagnosis")}
               className="w-full border rounded-lg p-2 h-20"
             ></textarea>
             {errors.diagnosis && (
@@ -163,27 +237,13 @@ const FormPage = () => {
           <div>
             <label className="block font-medium mb-1">Medications</label>
             <textarea
-              {...register("medications", {
-                required: "Medications are required",
-              })}
+              {...register("medications")}
               className="w-full border rounded-lg p-2 h-20"
             ></textarea>
             {errors.medications && (
               <p className="text-red-500 text-sm">
                 {errors.medications.message}
               </p>
-            )}
-          </div>
-
-          {/* Address */}
-          <div>
-            <label className="block font-medium mb-1">Address</label>
-            <textarea
-              {...register("address", { required: "Address is required" })}
-              className="w-full border rounded-lg p-2 h-20"
-            ></textarea>
-            {errors.address && (
-              <p className="text-red-500 text-sm">{errors.address.message}</p>
             )}
           </div>
 
@@ -208,16 +268,25 @@ const FormPage = () => {
             <label className="block font-medium mb-1">
               Upload Prescription
             </label>
-            <div className="border-2 border-dashed rounded-lg p-4 flex flex-col items-center justify-center text-center">
-              <Upload className="text-gray-400 mb-2" size={32} />
+            <div
+              onDragOver={handleDragOver}
+              onDragLeave={handleDragLeave}
+              onDrop={handleDrop}
+              className={`border-2 border-dashed rounded-lg p-4 flex flex-col items-center justify-center text-center transition-colors ${
+                isDragging ? "border-blue-500 bg-blue-50" : "border-gray-300"
+              }`}
+            >
+              <Upload
+                className={`mb-2 ${
+                  isDragging ? "text-blue-500" : "text-gray-400"
+                }`}
+                size={32}
+              />
               <input
                 type="file"
                 accept="image/*,application/pdf"
                 {...register("file")}
-                onChange={(e) => {
-                  const file = e.target.files?.[0];
-                  setFileName(file ? file.name : null);
-                }}
+                onChange={(e) => handleFileChange(e.target.files)}
                 className="hidden"
                 id="file-upload"
               />
@@ -225,9 +294,12 @@ const FormPage = () => {
                 htmlFor="file-upload"
                 className="text-sm text-blue-600 cursor-pointer hover:underline"
               >
-                Click to upload
+                Click to upload or drag and drop
               </label>
-              {fileName && <p className="mt-2 text-gray-600">{fileName}</p>}
+              <p className="text-xs text-gray-500 mt-1">PNG, JPG or PDF</p>
+              {fileName && (
+                <p className="mt-2 text-gray-600 font-medium">{fileName}</p>
+              )}
             </div>
           </div>
         </div>
@@ -237,7 +309,7 @@ const FormPage = () => {
           <button
             type="submit"
             disabled={uploading}
-            className="bg-primary cursor-pointer text-white font-semibold px-8 py-3 rounded-lg flex items-center gap-2"
+            className="bg-primary/80 cursor-pointer text-white font-semibold px-8 py-3 rounded-lg flex items-center gap-2 hover:bg-primary disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {uploading ? (
               <>
