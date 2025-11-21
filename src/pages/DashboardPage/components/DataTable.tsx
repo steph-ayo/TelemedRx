@@ -2,7 +2,7 @@ import React from "react";
 import { FileText } from "lucide-react";
 import StatusBadge from "./StatusBadge";
 import StatusDropdown from "./StatusDropdown";
-import type { MedicationRequest, StatusType } from "./types";
+import type { MedicationRequest, StatusType } from "../types";
 
 interface DataTableProps {
   requests: MedicationRequest[];
@@ -136,6 +136,10 @@ const DataTable: React.FC<DataTableProps> = ({
             ))}
           </tbody>
         </table>
+      </div>
+
+      <div className="px-4 py-3 bg-gray-50 border-t border-gray-200 text-xs text-gray-500 text-center">
+        ← Scroll horizontally to view all columns →
       </div>
     </div>
   );

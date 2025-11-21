@@ -1,6 +1,8 @@
 import React, { useState } from "react";
+import { useLocation } from "react-router-dom";
 import { Menu, Bell, UserCircle, LogOut } from "lucide-react";
 import user from "../assets/images/user.jpg";
+import { menuItems } from "./MenuItems";
 
 interface NavBarProps {
   setIsOpen: (isOpen: boolean) => void;
@@ -9,12 +11,17 @@ interface NavBarProps {
 const NavBar: React.FC<NavBarProps> = ({ setIsOpen }) => {
   const [isUserMenuOpen, setUserMenuOpen] = useState(false);
 
+  const location = useLocation();
+  const activeItem = menuItems.find((item) =>
+    location.pathname.startsWith(item.path)
+  );
+
   return (
     <>
       <nav className="flex flex-row p-3 justify-between shadow-lg">
         {/* Burger icon for mobile view */}
         <div
-          className="toggle lg:hidden text-2xl text-primary cursor-pointer hover:text-white hover:bg-primary hover:rounded-sm hover:p-1"
+          className="toggle lg:hidden text-2xl cursor-pointer"
           onClick={() => setIsOpen(true)}
         >
           <Menu size={24} />
@@ -22,7 +29,9 @@ const NavBar: React.FC<NavBarProps> = ({ setIsOpen }) => {
 
         {/* Nav title */}
         <div className="md:ml-30">
-          <h1 className="text-2xl font-semibold">Title</h1>
+          <h1 className="text-2xl font-semibold">
+            {activeItem?.label || "Leadway"}{" "}
+          </h1>
         </div>
 
         {/* Right nav container */}
@@ -35,7 +44,7 @@ const NavBar: React.FC<NavBarProps> = ({ setIsOpen }) => {
             </span>
           </div>
 
-          {/* Nav User-Profile */}
+          {/* Nav User Profile */}
           <div className="cursor-pointer rounded-2xl flex justify-center items-center relative">
             {/* User image container */}
             <div

@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { ChevronDown, Check } from "lucide-react";
 import StatusBadge from "./StatusBadge";
-import type { StatusType } from "./types";
+import type { StatusType } from "../types";
 
 interface StatusDropdownProps {
   currentStatus: StatusType;
