@@ -1,5 +1,5 @@
 import React from "react";
-import type { StatusType } from "./types";
+import type { StatusType } from "../types";
 
 interface StatusBadgeProps {
   status: StatusType;
