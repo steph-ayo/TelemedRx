@@ -197,7 +197,7 @@ const FormPage = () => {
                 <input
                   type="text"
                   {...register("name", { required: "Name is required" })}
-                  className="w-full border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
+                  className="w-full border border-gray-300 rounded-lg p-3 focus:border-transparent transition"
                   placeholder="Enter full name"
                 />
                 {errors.name && (
@@ -217,7 +217,7 @@ const FormPage = () => {
                   {...register("enrolleeID", {
                     required: "Enrollee ID is required",
                   })}
-                  className="w-full border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
+                  className="w-full border border-gray-300 rounded-lg p-3 focus:border-transparent transition"
                   placeholder="Enter enrollee ID"
                 />
                 {errors.enrolleeID && (
@@ -237,7 +237,7 @@ const FormPage = () => {
                   {...register("scheme", {
                     required: "Scheme/Plan is required",
                   })}
-                  className="w-full border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
+                  className="w-full border border-gray-300 rounded-lg p-3 focus:border-transparent transition"
                   placeholder="Enter scheme or plan"
                 />
                 {errors.scheme && (
@@ -262,7 +262,7 @@ const FormPage = () => {
                       message: "Enter a valid number",
                     },
                   })}
-                  className="w-full border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
+                  className="w-full border border-gray-300 rounded-lg p-3 focus:border-transparent transition"
                   placeholder="Enter phone number"
                 />
                 {errors.phone && (
@@ -280,7 +280,7 @@ const FormPage = () => {
                 </label>
                 <textarea
                   {...register("address", { required: "Address is required" })}
-                  className="w-full border border-gray-300 rounded-lg p-3 h-24 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition resize-none"
+                  className="w-full border border-gray-300 rounded-lg p-3 h-24 focus:border-transparent transition resize-none"
                   placeholder="Enter full address"
                 ></textarea>
                 {errors.address && (
@@ -309,7 +309,7 @@ const FormPage = () => {
                 </label>
                 <textarea
                   {...register("diagnosis")}
-                  className="w-full border border-gray-300 rounded-lg p-3 h-28 focus:ring-2 focus:ring-purple-500 focus:border-transparent transition resize-none"
+                  className="w-full border border-gray-300 rounded-lg p-3 h-28 focus:border-transparent transition resize-none"
                   placeholder="Enter diagnosis details"
                 ></textarea>
               </div>
@@ -322,7 +322,7 @@ const FormPage = () => {
                 </label>
                 <textarea
                   {...register("medications")}
-                  className="w-full border border-gray-300 rounded-lg p-3 h-28 focus:ring-2 focus:ring-purple-500 focus:border-transparent transition resize-none"
+                  className="w-full border border-gray-300 rounded-lg p-3 h-28 focus:border-transparent transition resize-none"
                   placeholder="List medications"
                 ></textarea>
               </div>
@@ -334,7 +334,7 @@ const FormPage = () => {
                 </label>
                 <select
                   {...register("requestSource", { required: true })}
-                  className="w-full border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-purple-500 focus:border-transparent transition bg-white"
+                  className="w-full border border-gray-300 rounded-lg p-3 focus:border-transparent transition bg-white"
                 >
                   <option value="">Select request type</option>
                   <option value="contactCenter">Acute</option>
