@@ -1,8 +1,8 @@
 import { useState } from "react";
 import {
   getAuth,
-  GoogleAuthProvider,
-  signInWithPopup,
+  // GoogleAuthProvider,
+  // signInWithPopup,
   signInWithEmailAndPassword,
 } from "firebase/auth";
 import { useNavigate } from "react-router-dom";
@@ -47,20 +47,20 @@ const LoginPage = () => {
   const isFormValid = email.length > 0 && password.length > 0 && !emailError;
 
   //Function to handle sign-in with Google
-  const signInWithGoogle = async () => {
-    setAuthing(true);
+  // const signInWithGoogle = async () => {
+  //   setAuthing(true);
 
-    //Use Firebase to sign in with Google
-    signInWithPopup(auth, new GoogleAuthProvider())
-      .then((response) => {
-        console.log(response.user.uid);
-        navigate("/main");
-      })
-      .catch((error) => {
-        console.log(error);
-        setAuthing(false);
-      });
-  };
+  //   //Use Firebase to sign in with Google
+  //   signInWithPopup(auth, new GoogleAuthProvider())
+  //     .then((response) => {
+  //       console.log(response.user.uid);
+  //       navigate("/main");
+  //     })
+  //     .catch((error) => {
+  //       console.log(error);
+  //       setAuthing(false);
+  //     });
+  // };
 
   //Function to handle sign-in with email and password
   const signInWithEmail = async (e: React.FormEvent) => {
