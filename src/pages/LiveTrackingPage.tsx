@@ -27,7 +27,7 @@ interface MedicationRequest {
 const LiveTrackingPage: React.FC = () => {
   const [requests, setRequests] = useState<MedicationRequest[]>([]);
   const [loading, setLoading] = useState(true);
-  const [lastUpdate, setLastUpdate] = useState<Date>(new Date());
+  const [lastUpdate] = useState<Date>(new Date());
 
   // Mock data - Replace with Firestore listener
   useEffect(() => {

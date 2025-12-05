@@ -1,11 +1,5 @@
 import React, { useState, useEffect } from "react";
-import {
-  TrendingUp,
-  DollarSign,
-  Package,
-  CheckCircle,
-  Clock,
-} from "lucide-react";
+import { DollarSign, Package, CheckCircle, Clock } from "lucide-react";
 
 interface MedicationRequest {
   id: string;
