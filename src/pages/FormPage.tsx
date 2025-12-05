@@ -41,6 +41,7 @@ const FormPage = () => {
   const [isDragging, setIsDragging] = useState(false);
   const [submitSuccess, setSubmitSuccess] = useState(false);
 
+  // Functions for handling files
   const handleFileChange = (files: FileList | null) => {
     if (files && files.length > 0) {
       setFileName(files[0].name);
@@ -75,11 +76,13 @@ const FormPage = () => {
           fileInput.files = dataTransfer.files;
         }
       } else {
+        // Use of a modal to show error message
         alert("Please upload an image or PDF file");
       }
     }
   };
 
+  // Form submission function
   const onSubmit = async (data: FormData) => {
     try {
       setUploading(true);
@@ -137,12 +140,13 @@ const FormPage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 p-4 md:p-8">
+    <section className="min-h-screen bg-gray-50 p-4 md:p-8">
+      {/* Form Container */}
       <div className="max-w-5xl mx-auto">
         {/* Header */}
         <div className="text-center mb-8">
           <h1 className="text-3xl md:text-4xl font-bold text-gray-800 mb-2">
-            Medical Request Form
+            Medication Request Form
           </h1>
           <p className="text-gray-600">
             Please fill in all required information
@@ -414,7 +418,7 @@ const FormPage = () => {
           </div>
         </div>
       </div>
-    </div>
+    </section>
   );
 };
 

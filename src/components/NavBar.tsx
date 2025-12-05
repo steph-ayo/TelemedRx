@@ -1,91 +1,132 @@
-import React, { useState } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { useLocation } from "react-router-dom";
 import { Menu, Bell, UserCircle, LogOut } from "lucide-react";
-import user from "../assets/images/user.jpg";
 import { menuItems } from "./MenuItems";
 
 interface NavBarProps {
   setIsOpen: (isOpen: boolean) => void;
+  handleSignOut: () => void;
 }
 
-const NavBar: React.FC<NavBarProps> = ({ setIsOpen }) => {
+const NavBar: React.FC<NavBarProps> = ({ setIsOpen, handleSignOut }) => {
   const [isUserMenuOpen, setUserMenuOpen] = useState(false);
+  const userMenuRef = useRef<HTMLDivElement>(null);
 
   const location = useLocation();
   const activeItem = menuItems.find((item) =>
     location.pathname.startsWith(item.path)
   );
 
-  return (
-    <>
-      <nav className="flex flex-row p-3 justify-between shadow-lg">
-        {/* Burger icon for mobile view */}
-        <div
-          className="toggle lg:hidden text-2xl cursor-pointer"
-          onClick={() => setIsOpen(true)}
-        >
-          <Menu size={24} />
-        </div>
+  // Close menu when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        userMenuRef.current &&
+        !userMenuRef.current.contains(event.target as Node)
+      ) {
+        setUserMenuOpen(false);
+      }
+    };
 
-        {/* Nav title */}
-        <div className="md:ml-30">
-          <h1 className="text-2xl font-semibold">
-            {activeItem?.label || "Leadway"}{" "}
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  return (
+    <nav className="bg-white border-b border-gray-200 sticky top-0 z-40 backdrop-blur-sm bg-opacity-95">
+      <div className="flex items-center justify-between px-4 py-3 lg:px-6">
+        {/* Left Section */}
+        <div className="flex items-center gap-4">
+          {/* Mobile Menu Button */}
+          <button
+            onClick={() => setIsOpen(true)}
+            className="lg:hidden p-2 hover:bg-gray-100 rounded-lg transition-colors duration-200"
+            aria-label="Open menu"
+          >
+            <Menu size={22} className="text-gray-700" />
+          </button>
+
+          {/* Page Title */}
+          <h1 className="text-lg lg:text-xl font-semibold text-gray-800 tracking-tight">
+            {activeItem?.label || "Leadway"}
           </h1>
         </div>
 
-        {/* Right nav container */}
-        <div className="flex flex-row gap-2">
-          {/* Notification */}
-          <div className="items-center text-xl p-2 cursor-pointer border border-gray-500 rounded-full lg:flex justify-center relative hover:bg-primary hover:text-white transition-colors duration-300">
-            <Bell size={20} />
-            <span className="text-xs text-white bg-primary px-1 rounded-2xl absolute top-0 right-0">
-              2
+        {/* Right Section */}
+        <div className="flex items-center gap-2 lg:gap-3">
+          {/* Notifications Button */}
+          <button
+            className="relative p-2 lg:p-2.5 hover:bg-gray-100 rounded-lg cursor-pointer transition-all duration-200"
+            aria-label="Notifications"
+          >
+            <Bell
+              size={20}
+              className="text-gray-600 group-hover:text-primary transition-colors"
+            />
+            <span className="absolute top-1 right-1 flex h-4 w-4 items-center justify-center">
+              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-primary opacity-40"></span>
+              <span className="relative inline-flex items-center justify-center rounded-full h-4 w-4 bg-primary text-[10px] font-semibold text-white">
+                2
+              </span>
             </span>
-          </div>
+          </button>
 
-          {/* Nav User Profile */}
-          <div className="cursor-pointer rounded-2xl flex justify-center items-center relative">
-            {/* User image container */}
-            <div
-              className="w-10 h-10 rounded-full overflow-hidden relative cursor-pointer"
+          {/* User Profile Dropdown */}
+          <div className="relative" ref={userMenuRef}>
+            <button
               onClick={() => setUserMenuOpen(!isUserMenuOpen)}
+              className="flex items-center gap-2 lg:gap-2.5 px-2 py-1.5 lg:px-3 lg:py-2 hover:bg-gray-100 rounded-lg cursor-pointer transition-all duration-200"
+              aria-label="User menu"
+              aria-expanded={isUserMenuOpen}
             >
-              <img
-                src={user}
-                alt="user-image"
-                className="w-full h-full object-cover mix-blend-multiply opacity-80"
-              />
-              <div className="absolute inset-0 bg-primary mix-blend-color"></div>
-            </div>
+              {/* Avatar with primary color overlay */}
+              <div className="relative w-8 h-8 lg:w-9 lg:h-9 rounded-full overflow-hidden ring-2 ring-gray-200 hover:ring-primary transition-all duration-200">
+                <img
+                  src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='50' fill='%23e5e7eb'/%3E%3Cpath d='M50 45a12 12 0 100-24 12 12 0 000 24zM30 75c0-11 9-20 20-20s20 9 20 20' fill='%239ca3af'/%3E%3C/svg%3E"
+                  alt="User"
+                  className="w-full h-full object-cover"
+                />
+                <div className="absolute inset-0 bg-primary opacity-10"></div>
+              </div>
+            </button>
 
+            {/* Dropdown Menu */}
             {isUserMenuOpen && (
-              <ul className="absolute top-12 right-0 bg-white w-[200px] p-3 flex flex-col gap-3 rounded-2xl shadow-xl z-50 ">
-                <li>
+              <div className="absolute top-full right-0 mt-2 w-56 bg-white rounded-xl shadow-lg border border-gray-200 py-2 animate-in fade-in slide-in-from-top-2 duration-200">
+                {/* User Info Section */}
+                <div className="px-4 py-3 border-b border-gray-100">
+                  <p className="text-xs text-gray-500 font-medium uppercase tracking-wide mb-1">
+                    Signed in as
+                  </p>
+                  <p className="text-sm font-semibold text-gray-800 truncate">
+                    user@example.com
+                  </p>
+                </div>
+
+                {/* Menu Items */}
+                <div className="py-1">
                   <a
                     href="/Profile"
-                    className="text-md hover:text-primary transition-colors duration-300 flex items-center"
+                    className="flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 hover:text-primary transition-colors duration-150"
                   >
-                    <UserCircle size={20} className="mr-2" />
-                    Signed in as ...
+                    <UserCircle size={18} className="text-gray-400" />
+                    <span className="font-medium">My Profile</span>
                   </a>
-                </li>
 
-                <li>
                   <a
-                    href="/logout"
-                    className="text-md hover:text-primary transition-colors duration-300 flex items-center"
+                    onClick={handleSignOut}
+                    className="flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-red-50 hover:text-red-600 transition-colors duration-150"
                   >
-                    <LogOut size={20} className="mr-2" />
-                    Logout
+                    <LogOut size={18} className="text-gray-400" />
+                    <span className="font-medium">Logout</span>
                   </a>
-                </li>
-              </ul>
+                </div>
+              </div>
             )}
           </div>
         </div>
-      </nav>
-    </>
+      </div>
+    </nav>
   );
 };
 
