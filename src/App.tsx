@@ -6,7 +6,7 @@ import "./config/firebase";
 
 import MainPage from "./pages/MainPage";
 import FormPage from "./pages/FormPage";
-import DashboardPage from "./pages/DashboardPage/DashboardPage";
+import DashboardPage from "./pages/Dashboard/DashboardPage";
 import LiveTrackingPage from "./pages/LiveTrackingPage";
 import SummaryPage from "./pages/SummaryPage";
 

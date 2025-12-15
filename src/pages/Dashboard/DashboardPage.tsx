@@ -39,11 +39,11 @@ const DashboardPage: React.FC = () => {
         id: "1",
         date: "2025-11-08",
         name: "John Doe",
-        enrolleeId: "ENR-001",
+        enrolleeId: "2512345/0",
         address: "123 Main St, Lagos",
         diagnosis: "Hypertension",
         medications: "Lisinopril 10mg, Amlodipine 5mg",
-        source: "Web Form",
+        source: "Telemedicine",
         fileUrl: "#",
         status: "Not Sorted",
         billed: false,
@@ -52,11 +52,11 @@ const DashboardPage: React.FC = () => {
         id: "2",
         date: "2025-11-07",
         name: "Jane Smith",
-        enrolleeId: "ENR-002",
+        enrolleeId: "2512345/1",
         address: "456 Oak Ave, Abuja",
         diagnosis: "Diabetes Type 2",
         medications: "Metformin 500mg, Glimepiride 2mg",
-        source: "Phone",
+        source: "Acute",
         fileUrl: "#",
         status: "Packed",
         billed: true,
@@ -65,11 +65,11 @@ const DashboardPage: React.FC = () => {
         id: "3",
         date: "2025-11-07",
         name: "Michael Johnson",
-        enrolleeId: "ENR-003",
+        enrolleeId: "2512345/2",
         address: "789 Elm St, Port Harcourt",
         diagnosis: "Asthma",
         medications: "Albuterol inhaler, Fluticasone",
-        source: "Email",
+        source: "Telemedicine",
         fileUrl: null,
         status: "Delivered",
         billed: true,
@@ -263,7 +263,7 @@ const DashboardPage: React.FC = () => {
 
               <button
                 onClick={exportData}
-                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 inline-flex items-center"
+                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:outline-none inline-flex items-center"
                 title="Export to CSV"
               >
                 <Download className="h-5 w-5" />

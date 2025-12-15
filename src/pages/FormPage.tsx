@@ -2,175 +2,149 @@
 
 import { useState } from "react";
 import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
 import {
   Upload,
   Loader2,
-  FileText,
   CheckCircle2,
   User,
   Phone,
   MapPin,
   Stethoscope,
   Pill,
-  Calendar,
+  AlertCircle,
 } from "lucide-react";
 
-type FormData = {
-  name: string;
-  enrolleeID: string;
-  scheme: string;
-  phone: string;
-  diagnosis: string;
-  medications: string;
-  address: string;
-  requestSource: "contactCenter" | "telemedicine";
-  file: FileList;
-};
+// Import our files
+import {
+  medicationRequestSchema,
+  type MedicationRequestFormData,
+} from "../validation";
+import { uploadFile, submitRequest } from "../firebase-service";
 
 const FormPage = () => {
+  // React Hook Form setup with Zod validation
   const {
     register,
     handleSubmit,
-    formState: { errors },
+    formState: { errors, isSubmitting },
     reset,
-  } = useForm<FormData>();
+  } = useForm<MedicationRequestFormData>({
+    resolver: zodResolver(medicationRequestSchema),
+  });
 
-  const [uploading, setUploading] = useState(false);
-  const [fileName, setFileName] = useState<string | null>(null);
-  const [date] = useState(() => new Date().toLocaleString());
-  const [isDragging, setIsDragging] = useState(false);
-  const [submitSuccess, setSubmitSuccess] = useState(false);
+  // State for file upload
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [uploadProgress, setUploadProgress] = useState(0);
 
-  // Functions for handling files
-  const handleFileChange = (files: FileList | null) => {
-    if (files && files.length > 0) {
-      setFileName(files[0].name);
-    }
-  };
+  // State for success/error messages
+  const [message, setMessage] = useState<{
+    type: "success" | "error" | null;
+    text: string;
+  }>({ type: null, text: "" });
 
-  const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
-    e.preventDefault();
-    setIsDragging(true);
-  };
-
-  const handleDragLeave = (e: React.DragEvent<HTMLDivElement>) => {
-    e.preventDefault();
-    setIsDragging(false);
-  };
-
-  const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
-    e.preventDefault();
-    setIsDragging(false);
-
-    const files = e.dataTransfer.files;
+  // Handle file selection
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
     if (files && files.length > 0) {
       const file = files[0];
-      if (file.type.startsWith("image/") || file.type === "application/pdf") {
-        setFileName(file.name);
-        const dataTransfer = new DataTransfer();
-        dataTransfer.items.add(file);
-        const fileInput = document.getElementById(
-          "file-upload"
-        ) as HTMLInputElement;
-        if (fileInput) {
-          fileInput.files = dataTransfer.files;
-        }
-      } else {
-        // Use of a modal to show error message
-        alert("Please upload an image or PDF file");
+
+      // Check file size
+      if (file.size > 10 * 1024 * 1024) {
+        setMessage({ type: "error", text: "File must be less than 10MB" });
+        return;
       }
+
+      // Check file type
+      const allowed = [
+        "image/jpeg",
+        "image/png",
+        "image/jpg",
+        "application/pdf",
+      ];
+      if (!allowed.includes(file.type)) {
+        setMessage({ type: "error", text: "Only JPG, PNG, and PDF allowed" });
+        return;
+      }
+
+      setSelectedFile(file);
+      setMessage({ type: null, text: "" });
     }
   };
 
-  // Form submission function
-  const onSubmit = async (data: FormData) => {
+  // Form submission
+  const onSubmit = async (data: MedicationRequestFormData) => {
     try {
-      setUploading(true);
+      setMessage({ type: null, text: "" });
+      let fileUrl: string | null = null;
 
-      const file = data.file?.[0];
-      let fileBase64 = "";
-      let fileName = "";
-
-      if (file) {
-        const reader = new FileReader();
-        fileBase64 = await new Promise<string>((resolve, reject) => {
-          reader.onload = () =>
-            resolve(reader.result?.toString().split(",")[1] || "");
-          reader.onerror = reject;
-          reader.readAsDataURL(file);
-        });
-        fileName = file.name;
+      // Upload file if selected
+      if (selectedFile) {
+        fileUrl = await uploadFile(selectedFile, setUploadProgress);
       }
 
-      const payload = {
-        ...data,
-        fileBase64,
-        fileName,
-        date,
-        updatedBy: "Contact Center Agent",
-      };
-
-      const response = await fetch(
-        "https://script.google.com/macros/s/AKfycbweb4lKeBPRPSJ4rvgatwDelnXEKxg0Fq7H2RADbmH1fcqqZnbPb4A1msPyJ400WujCkA/exec",
-        {
-          method: "POST",
-          body: JSON.stringify(payload),
-          headers: { "Content-Type": "application/json" },
-        }
-      );
-
-      const result = await response.json();
+      // Submit to Firestore
+      const result = await submitRequest(data, fileUrl);
 
       if (result.success) {
-        setSubmitSuccess(true);
+        setMessage({
+          type: "success",
+          text: "Request submitted successfully!",
+        });
+
+        // Reset form after 2 seconds
         setTimeout(() => {
           reset();
-          setFileName(null);
-          setSubmitSuccess(false);
-        }, 3000);
+          setSelectedFile(null);
+          setUploadProgress(0);
+          setMessage({ type: null, text: "" });
+        }, 2000);
       } else {
-        alert("❌ Failed: " + result.error);
+        setMessage({ type: "error", text: "Failed to submit request" });
       }
-    } catch (err) {
-      console.error(err);
-      alert("Something went wrong!");
-    } finally {
-      setUploading(false);
+    } catch (error) {
+      setMessage({ type: "error", text: "Something went wrong!" });
     }
   };
 
   return (
     <section className="min-h-screen bg-gray-50 p-4 md:p-8">
-      {/* Form Container */}
       <div className="max-w-5xl mx-auto">
         {/* Header */}
         <div className="text-center mb-8">
           <h1 className="text-3xl md:text-4xl font-bold text-gray-800 mb-2">
             Medication Request Form
           </h1>
-          <p className="text-gray-600">
-            Please fill in all required information
-          </p>
+          <p className="text-gray-600">Fill in all required information</p>
         </div>
 
-        {/* Success Message */}
-        {submitSuccess && (
-          <div className="mb-6 bg-green-50 border border-green-200 rounded-xl p-4 flex items-center gap-3">
-            <CheckCircle2 className="text-green-600" size={24} />
-            <div>
-              <p className="text-green-800 font-semibold">
-                Request submitted successfully!
-              </p>
-              <p className="text-green-600 text-sm">
-                Your form has been processed
-              </p>
-            </div>
+        {/* Success/Error Message */}
+        {message.type && (
+          <div
+            className={`mb-6 rounded-xl p-4 flex items-center gap-3 ${
+              message.type === "success"
+                ? "bg-green-50 border border-green-200"
+                : "bg-red-50 border border-red-200"
+            }`}
+          >
+            {message.type === "success" ? (
+              <CheckCircle2 className="text-green-600" size={24} />
+            ) : (
+              <AlertCircle className="text-red-600" size={24} />
+            )}
+            <p
+              className={`font-semibold ${
+                message.type === "success" ? "text-green-800" : "text-red-800"
+              }`}
+            >
+              {message.text}
+            </p>
           </div>
         )}
 
-        <div className="space-y-6">
-          {/* Patient Information Card */}
-          <div className="bg-white rounded-2xl shadow-lg p-6 md:p-8 border border-gray-100">
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+          {/* Patient Information */}
+          <div className="bg-white rounded-2xl shadow-lg p-6 md:p-8">
             <div className="flex items-center gap-2 mb-6">
               <User className="text-blue-600" size={24} />
               <h2 className="text-xl font-semibold text-gray-800">
@@ -179,20 +153,6 @@ const FormPage = () => {
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {/* Date */}
-              <div className="md:col-span-2">
-                <label className="flex items-center gap-2 text-sm font-medium text-gray-700 mb-2">
-                  <Calendar size={16} />
-                  Date & Time
-                </label>
-                <input
-                  type="text"
-                  value={date}
-                  readOnly
-                  className="w-full border border-gray-200 rounded-lg p-3 bg-gray-50 text-gray-600"
-                />
-              </div>
-
               {/* Name */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -200,8 +160,8 @@ const FormPage = () => {
                 </label>
                 <input
                   type="text"
-                  {...register("name", { required: "Name is required" })}
-                  className="w-full border border-gray-300 rounded-lg p-3 focus:border-transparent transition"
+                  {...register("name")}
+                  className="w-full border border-gray-300 rounded-lg p-3 "
                   placeholder="Enter full name"
                 />
                 {errors.name && (
@@ -218,10 +178,8 @@ const FormPage = () => {
                 </label>
                 <input
                   type="text"
-                  {...register("enrolleeID", {
-                    required: "Enrollee ID is required",
-                  })}
-                  className="w-full border border-gray-300 rounded-lg p-3 focus:border-transparent transition"
+                  {...register("enrolleeID")}
+                  className="w-full border border-gray-300 rounded-lg p-3"
                   placeholder="Enter enrollee ID"
                 />
                 {errors.enrolleeID && (
@@ -238,10 +196,8 @@ const FormPage = () => {
                 </label>
                 <input
                   type="text"
-                  {...register("scheme", {
-                    required: "Scheme/Plan is required",
-                  })}
-                  className="w-full border border-gray-300 rounded-lg p-3 focus:border-transparent transition"
+                  {...register("scheme")}
+                  className="w-full border border-gray-300 rounded-lg p-3"
                   placeholder="Enter scheme or plan"
                 />
                 {errors.scheme && (
@@ -259,15 +215,9 @@ const FormPage = () => {
                 </label>
                 <input
                   type="tel"
-                  {...register("phone", {
-                    required: "Phone number is required",
-                    pattern: {
-                      value: /^[0-9]+$/,
-                      message: "Enter a valid number",
-                    },
-                  })}
-                  className="w-full border border-gray-300 rounded-lg p-3 focus:border-transparent transition"
-                  placeholder="Enter phone number"
+                  {...register("phone")}
+                  className="w-full border border-gray-300 rounded-lg p-3"
+                  placeholder="08012345678"
                 />
                 {errors.phone && (
                   <p className="text-red-500 text-sm mt-1">
@@ -283,8 +233,8 @@ const FormPage = () => {
                   Address <span className="text-red-500">*</span>
                 </label>
                 <textarea
-                  {...register("address", { required: "Address is required" })}
-                  className="w-full border border-gray-300 rounded-lg p-3 h-24 focus:border-transparent transition resize-none"
+                  {...register("address")}
+                  className="w-full border border-gray-300 rounded-lg p-3 h-24 resize-none"
                   placeholder="Enter full address"
                 ></textarea>
                 {errors.address && (
@@ -296,8 +246,8 @@ const FormPage = () => {
             </div>
           </div>
 
-          {/* Medical Information Card */}
-          <div className="bg-white rounded-2xl shadow-lg p-6 md:p-8 border border-gray-100">
+          {/* Medical Information */}
+          <div className="bg-white rounded-2xl shadow-lg p-6 md:p-8">
             <div className="flex items-center gap-2 mb-6">
               <Stethoscope className="text-blue-600" size={24} />
               <h2 className="text-xl font-semibold text-gray-800">
@@ -313,8 +263,8 @@ const FormPage = () => {
                 </label>
                 <textarea
                   {...register("diagnosis")}
-                  className="w-full border border-gray-300 rounded-lg p-3 h-28 focus:border-transparent transition resize-none"
-                  placeholder="Enter diagnosis details"
+                  className="w-full border border-gray-300 rounded-lg p-3 h-28 resize-none"
+                  placeholder="Enter diagnosis"
                 ></textarea>
               </div>
 
@@ -326,71 +276,70 @@ const FormPage = () => {
                 </label>
                 <textarea
                   {...register("medications")}
-                  className="w-full border border-gray-300 rounded-lg p-3 h-28 focus:border-transparent transition resize-none"
+                  className="w-full border border-gray-300 rounded-lg p-3 h-28 resize-none"
                   placeholder="List medications"
                 ></textarea>
               </div>
 
-              {/* Request Source */}
+              {/* Request Type */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   Request Type <span className="text-red-500">*</span>
                 </label>
                 <select
-                  {...register("requestSource", { required: true })}
-                  className="w-full border border-gray-300 rounded-lg p-3 focus:border-transparent transition bg-white"
+                  {...register("requestSource")}
+                  className="w-full border border-gray-300 rounded-lg p-3 bg-white"
                 >
-                  <option value="">Select request type</option>
+                  <option value="">Select type</option>
                   <option value="contactCenter">Acute</option>
                   <option value="telemedicine">Telemedicine</option>
                 </select>
                 {errors.requestSource && (
                   <p className="text-red-500 text-sm mt-1">
-                    Select a request type
+                    {errors.requestSource.message}
                   </p>
                 )}
               </div>
 
-              {/* Upload Prescription */}
+              {/* File Upload */}
               <div>
-                <label className="flex items-center gap-2 text-sm font-medium text-gray-700 mb-2">
-                  <FileText size={16} />
+                <label className="block text-sm font-medium text-gray-700 mb-2">
                   Upload Prescription
                 </label>
-                <div
-                  onDragOver={handleDragOver}
-                  onDragLeave={handleDragLeave}
-                  onDrop={handleDrop}
-                  className={`border-2 border-dashed rounded-lg p-6 flex flex-col items-center justify-center text-center transition-all h-28 cursor-pointer ${
-                    isDragging
-                      ? "border-primary bg-primary/10 scale-105"
-                      : "border-gray-300 hover:border-primary hover:bg-primary/10"
-                  }`}
-                >
-                  <Upload
-                    className={`mb-2 transition-colors ${
-                      isDragging ? "text-primary" : "text-gray-400"
-                    }`}
-                    size={28}
-                  />
+                <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-blue-400 transition">
+                  <Upload className="mx-auto mb-2 text-gray-400" size={28} />
                   <input
                     type="file"
                     accept="image/*,application/pdf"
-                    {...register("file")}
-                    onChange={(e) => handleFileChange(e.target.files)}
+                    onChange={handleFileChange}
                     className="hidden"
                     id="file-upload"
                   />
                   <label
                     htmlFor="file-upload"
-                    className="text-sm text-primary cursor-pointer hover:underline font-medium"
+                    className="text-sm text-blue-600 cursor-pointer hover:underline font-medium"
                   >
-                    {fileName ? fileName : "Click or drag to upload"}
+                    {selectedFile ? selectedFile.name : "Click to upload"}
                   </label>
                   <p className="text-xs text-gray-500 mt-1">
                     PNG, JPG or PDF (Max 10MB)
                   </p>
                 </div>
+
+                {/* Upload Progress */}
+                {uploadProgress > 0 && uploadProgress < 100 && (
+                  <div className="mt-2">
+                    <div className="w-full bg-gray-200 rounded-full h-2">
+                      <div
+                        className="bg-blue-600 h-2 rounded-full"
+                        style={{ width: `${uploadProgress}%` }}
+                      ></div>
+                    </div>
+                    <p className="text-xs text-gray-600 mt-1 text-center">
+                      {uploadProgress.toFixed(0)}% uploaded
+                    </p>
+                  </div>
+                )}
               </div>
             </div>
           </div>
@@ -398,12 +347,11 @@ const FormPage = () => {
           {/* Submit Button */}
           <div className="flex justify-center pb-8">
             <button
-              type="button"
-              onClick={handleSubmit(onSubmit)}
-              disabled={uploading}
-              className="bg-primary text-white font-semibold px-12 py-4 rounded-xl flex items-center gap-3 cursor-pointer transform transition 300"
+              type="submit"
+              disabled={isSubmitting}
+              className="bg-primary hover:bg-primary disabled:bg-gray-400 disabled:cursor-not-allowed text-white font-semibold px-12 py-4 rounded-xl flex items-center gap-3 transition"
             >
-              {uploading ? (
+              {isSubmitting ? (
                 <>
                   <Loader2 className="animate-spin" size={20} />
                   Processing...
@@ -416,7 +364,7 @@ const FormPage = () => {
               )}
             </button>
           </div>
-        </div>
+        </form>
       </div>
     </section>
   );

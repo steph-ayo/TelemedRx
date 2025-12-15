@@ -6,6 +6,8 @@ import {
   XCircle,
   Clock,
   AlertCircle,
+  Search,
+  Filter,
 } from "lucide-react";
 
 interface MedicationRequest {
@@ -14,6 +16,8 @@ interface MedicationRequest {
   name: string;
   enrolleeId: string;
   medications: string;
+  diagnosis?: string;
+  address?: string;
   status:
     | "Not Sorted"
     | "Packed"
@@ -26,8 +30,14 @@ interface MedicationRequest {
 
 const LiveTrackingPage: React.FC = () => {
   const [requests, setRequests] = useState<MedicationRequest[]>([]);
+  const [filteredRequests, setFilteredRequests] = useState<MedicationRequest[]>(
+    []
+  );
   const [loading, setLoading] = useState(true);
-  const [lastUpdate] = useState<Date>(new Date());
+  const [lastUpdate, setLastUpdate] = useState<Date>(new Date());
+  const [searchTerm, setSearchTerm] = useState("");
+  const [statusFilter, setStatusFilter] = useState("All");
+  const [viewMode, setViewMode] = useState<"kanban" | "list">("list");
 
   // Mock data - Replace with Firestore listener
   useEffect(() => {
@@ -36,8 +46,10 @@ const LiveTrackingPage: React.FC = () => {
         id: "1",
         date: "2025-12-05",
         name: "John Doe",
-        enrolleeId: "ENR-001",
+        enrolleeId: "2512345/0",
         medications: "Lisinopril 10mg",
+        diagnosis: "Hypertension",
+        address: "123 Main St, Lagos",
         status: "Not Sorted",
         billed: false,
       },
@@ -45,8 +57,10 @@ const LiveTrackingPage: React.FC = () => {
         id: "2",
         date: "2025-12-05",
         name: "Jane Smith",
-        enrolleeId: "ENR-002",
+        enrolleeId: "2512345/1",
         medications: "Metformin 500mg",
+        diagnosis: "Diabetes",
+        address: "456 Oak Ave, Abuja",
         status: "Packed",
         billed: true,
       },
@@ -54,8 +68,10 @@ const LiveTrackingPage: React.FC = () => {
         id: "3",
         date: "2025-12-04",
         name: "Michael Johnson",
-        enrolleeId: "ENR-003",
+        enrolleeId: "2512345/2",
         medications: "Albuterol inhaler",
+        diagnosis: "Asthma",
+        address: "789 Elm St, Port Harcourt",
         status: "Sent to Pharmacy",
         billed: false,
       },
@@ -63,8 +79,10 @@ const LiveTrackingPage: React.FC = () => {
         id: "4",
         date: "2025-12-04",
         name: "Sarah Williams",
-        enrolleeId: "ENR-004",
+        enrolleeId: "2512345/3",
         medications: "Amoxicillin 500mg",
+        diagnosis: "Bacterial Infection",
+        address: "321 Pine Rd, Ibadan",
         status: "Sent for Delivery",
         billed: true,
       },
@@ -72,8 +90,10 @@ const LiveTrackingPage: React.FC = () => {
         id: "5",
         date: "2025-12-03",
         name: "David Brown",
-        enrolleeId: "ENR-005",
+        enrolleeId: "2512345/4",
         medications: "Ibuprofen 400mg",
+        diagnosis: "Pain Management",
+        address: "654 Cedar Ln, Kano",
         status: "Delivered",
         billed: true,
       },
@@ -81,8 +101,10 @@ const LiveTrackingPage: React.FC = () => {
         id: "6",
         date: "2025-12-03",
         name: "Emily Davis",
-        enrolleeId: "ENR-006",
+        enrolleeId: "2512345/5",
         medications: "Omeprazole 20mg",
+        diagnosis: "GERD",
+        address: "987 Birch Ave, Enugu",
         status: "Returned",
         billed: false,
       },
@@ -90,6 +112,7 @@ const LiveTrackingPage: React.FC = () => {
 
     setTimeout(() => {
       setRequests(mockData);
+      setFilteredRequests(mockData);
       setLoading(false);
     }, 1000);
 
@@ -99,17 +122,40 @@ const LiveTrackingPage: React.FC = () => {
     // const unsubscribe = onSnapshot(q, (snapshot) => {
     //   const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as MedicationRequest));
     //   setRequests(data);
+    //   setFilteredRequests(data);
     //   setLastUpdate(new Date());
     //   setLoading(false);
     // });
     // return () => unsubscribe();
   }, []);
 
+  // Filter logic
+  useEffect(() => {
+    let filtered = requests;
+
+    // Search filter
+    if (searchTerm) {
+      filtered = filtered.filter(
+        (req) =>
+          req.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          req.enrolleeId.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          req.medications.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          req.diagnosis?.toLowerCase().includes(searchTerm.toLowerCase())
+      );
+    }
+
+    // Status filter
+    if (statusFilter !== "All") {
+      filtered = filtered.filter((req) => req.status === statusFilter);
+    }
+
+    setFilteredRequests(filtered);
+  }, [searchTerm, statusFilter, requests]);
+
   const statusColumns = [
     {
       status: "Not Sorted",
       icon: AlertCircle,
-      color: "red",
       bgColor: "bg-red-50",
       borderColor: "border-red-200",
       textColor: "text-red-700",
@@ -118,7 +164,6 @@ const LiveTrackingPage: React.FC = () => {
     {
       status: "Packed",
       icon: Package,
-      color: "blue",
       bgColor: "bg-blue-50",
       borderColor: "border-blue-200",
       textColor: "text-blue-700",
@@ -127,7 +172,6 @@ const LiveTrackingPage: React.FC = () => {
     {
       status: "Sent to Pharmacy",
       icon: Clock,
-      color: "purple",
       bgColor: "bg-purple-50",
       borderColor: "border-purple-200",
       textColor: "text-purple-700",
@@ -136,7 +180,6 @@ const LiveTrackingPage: React.FC = () => {
     {
       status: "Sent for Delivery",
       icon: Truck,
-      color: "yellow",
       bgColor: "bg-yellow-50",
       borderColor: "border-yellow-200",
       textColor: "text-yellow-700",
@@ -145,7 +188,6 @@ const LiveTrackingPage: React.FC = () => {
     {
       status: "Delivered",
       icon: CheckCircle,
-      color: "green",
       bgColor: "bg-green-50",
       borderColor: "border-green-200",
       textColor: "text-green-700",
@@ -154,7 +196,6 @@ const LiveTrackingPage: React.FC = () => {
     {
       status: "Returned",
       icon: XCircle,
-      color: "gray",
       bgColor: "bg-gray-50",
       borderColor: "border-gray-200",
       textColor: "text-gray-700",
@@ -163,7 +204,19 @@ const LiveTrackingPage: React.FC = () => {
   ];
 
   const getRequestsByStatus = (status: string) => {
-    return requests.filter((req) => req.status === status);
+    return filteredRequests.filter((req) => req.status === status);
+  };
+
+  const getStatusStyle = (status: string) => {
+    const statusMap: Record<string, string> = {
+      "Not Sorted": "bg-red-100 text-red-700 border-red-300",
+      Packed: "bg-blue-100 text-blue-700 border-blue-300",
+      "Sent to Pharmacy": "bg-purple-100 text-purple-700 border-purple-300",
+      "Sent for Delivery": "bg-yellow-100 text-yellow-700 border-yellow-300",
+      Delivered: "bg-green-100 text-green-700 border-green-300",
+      Returned: "bg-gray-100 text-gray-700 border-gray-300",
+    };
+    return statusMap[status] || "bg-gray-100 text-gray-700";
   };
 
   if (loading) {
@@ -185,7 +238,7 @@ const LiveTrackingPage: React.FC = () => {
                 Live Tracking
               </h1>
               <p className="mt-2 text-sm text-gray-600">
-                Real-time medication request status tracking
+                Search and track medication request status in real-time
               </p>
             </div>
             <div className="text-right">
@@ -198,6 +251,67 @@ const LiveTrackingPage: React.FC = () => {
                 <span className="text-xs text-green-600">Live</span>
               </div>
             </div>
+          </div>
+        </div>
+
+        {/* Search and Filters */}
+        <div className="bg-white rounded-lg shadow p-4 mb-6">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {/* Search Bar */}
+            <div className="md:col-span-2">
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+                <input
+                  type="text"
+                  placeholder="Search by name, enrollee ID, medication, or diagnosis..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg"
+                />
+              </div>
+            </div>
+
+            {/* Status Filter */}
+            <div>
+              <select
+                value={statusFilter}
+                onChange={(e) => setStatusFilter(e.target.value)}
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg"
+              >
+                <option value="All">All Status</option>
+                {statusColumns.map((col) => (
+                  <option key={col.status} value={col.status}>
+                    {col.status}
+                  </option>
+                ))}
+              </select>
+            </div>
+          </div>
+
+          {/* Results Count */}
+          <div className="mt-4 flex items-center justify-between text-sm text-gray-600">
+            <span>
+              Showing{" "}
+              <span className="font-semibold text-gray-900">
+                {filteredRequests.length}
+              </span>{" "}
+              of{" "}
+              <span className="font-semibold text-gray-900">
+                {requests.length}
+              </span>{" "}
+              requests
+            </span>
+            {(searchTerm || statusFilter !== "All") && (
+              <button
+                onClick={() => {
+                  setSearchTerm("");
+                  setStatusFilter("All");
+                }}
+                className="text-blue-600 hover:text-blue-800 font-medium"
+              >
+                Clear filters
+              </button>
+            )}
           </div>
         </div>
 
@@ -225,77 +339,80 @@ const LiveTrackingPage: React.FC = () => {
           })}
         </div>
 
-        {/* Kanban Board */}
-        <div className="overflow-x-auto pb-4">
-          <div className="inline-flex gap-4 min-w-full">
-            {statusColumns.map((column) => {
-              const Icon = column.icon;
-              const columnRequests = getRequestsByStatus(column.status);
-
-              return (
-                <div
-                  key={column.status}
-                  className="flex-shrink-0 w-80 bg-white rounded-lg shadow-sm border border-gray-200"
-                >
-                  {/* Column Header */}
-                  <div
-                    className={`${column.bgColor} border-b ${column.borderColor} p-4 rounded-t-lg`}
-                  >
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center space-x-2">
-                        <Icon className={`h-5 w-5 ${column.iconColor}`} />
-                        <h3 className={`font-semibold ${column.textColor}`}>
-                          {column.status}
-                        </h3>
-                      </div>
-                      <span
-                        className={`${column.bgColor} ${column.textColor} px-2 py-1 rounded-full text-xs font-semibold border ${column.borderColor}`}
-                      >
-                        {columnRequests.length}
-                      </span>
-                    </div>
-                  </div>
-
-                  {/* Column Content */}
-                  <div className="p-3 space-y-3 max-h-[600px] overflow-y-auto">
-                    {columnRequests.length === 0 ? (
-                      <div className="text-center py-8 text-gray-400 text-sm">
-                        No requests
-                      </div>
-                    ) : (
-                      columnRequests.map((request) => (
-                        <div
-                          key={request.id}
-                          className="bg-white border border-gray-200 rounded-lg p-3 hover:shadow-md transition-shadow cursor-pointer"
+        {/* List View */}
+        <div className="bg-white rounded-lg shadow overflow-hidden">
+          <div className="overflow-x-auto">
+            <table className="min-w-full divide-y divide-gray-200">
+              <thead className="bg-gray-50">
+                <tr>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                    Date
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                    Enrollee ID
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                    Patient
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                    Medication
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                    Status
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                    Billing
+                  </th>
+                </tr>
+              </thead>
+              <tbody className="bg-white divide-y divide-gray-200">
+                {filteredRequests.length === 0 ? (
+                  <tr>
+                    <td
+                      colSpan={6}
+                      className="px-6 py-8 text-center text-gray-500"
+                    >
+                      No requests found
+                    </td>
+                  </tr>
+                ) : (
+                  filteredRequests.map((request) => (
+                    <tr key={request.id} className="hover:bg-gray-50">
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                        {new Date(request.date).toLocaleDateString()}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                        {request.enrolleeId}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                        {request.name}
+                      </td>
+                      <td className="px-6 py-4 text-sm text-gray-500 max-w-xs truncate">
+                        {request.medications}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <span
+                          className={`px-3 py-1 rounded-full text-xs font-medium border ${getStatusStyle(
+                            request.status
+                          )}`}
                         >
-                          <div className="flex items-start justify-between mb-2">
-                            <h4 className="font-semibold text-gray-900 text-sm">
-                              {request.name}
-                            </h4>
-                            {request.billed && (
-                              <span className="bg-green-100 text-green-700 text-xs px-2 py-0.5 rounded-full font-medium">
-                                Billed
-                              </span>
-                            )}
-                          </div>
-                          <p className="text-xs text-gray-600 mb-1">
-                            ID: {request.enrolleeId}
-                          </p>
-                          <p className="text-xs text-gray-500 mb-2 line-clamp-2">
-                            {request.medications}
-                          </p>
-                          <div className="flex items-center justify-between">
-                            <span className="text-xs text-gray-400">
-                              {new Date(request.date).toLocaleDateString()}
-                            </span>
-                          </div>
-                        </div>
-                      ))
-                    )}
-                  </div>
-                </div>
-              );
-            })}
+                          {request.status}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm">
+                        {request.billed ? (
+                          <span className="text-green-600 font-medium">
+                            Billed
+                          </span>
+                        ) : (
+                          <span className="text-gray-500">Pending</span>
+                        )}
+                      </td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
           </div>
         </div>
       </div>
