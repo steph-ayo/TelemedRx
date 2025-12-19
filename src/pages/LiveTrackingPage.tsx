@@ -7,7 +7,6 @@ import {
   Clock,
   AlertCircle,
   Search,
-  Filter,
 } from "lucide-react";
 
 interface MedicationRequest {
@@ -37,7 +36,97 @@ const LiveTrackingPage: React.FC = () => {
   const [lastUpdate, setLastUpdate] = useState<Date>(new Date());
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("All");
-  const [viewMode, setViewMode] = useState<"kanban" | "list">("list");
+  // const [viewMode, setViewMode] = useState<"kanban" | "list">("list");
+
+  // Mock data - Replace with Firestore listener
+  // useEffect(() => {
+  //   const mockData: MedicationRequest[] = [
+  //     {
+  //       id: "1",
+  //       date: "2025-12-05",
+  //       name: "John Doe",
+  //       enrolleeId: "2512345/0",
+  //       medications: "Lisinopril 10mg",
+  //       diagnosis: "Hypertension",
+  //       address: "123 Main St, Lagos",
+  //       status: "Not Sorted",
+  //       billed: false,
+  //     },
+  //     {
+  //       id: "2",
+  //       date: "2025-12-05",
+  //       name: "Jane Smith",
+  //       enrolleeId: "2512345/1",
+  //       medications: "Metformin 500mg",
+  //       diagnosis: "Diabetes",
+  //       address: "456 Oak Ave, Abuja",
+  //       status: "Packed",
+  //       billed: true,
+  //     },
+  //     {
+  //       id: "3",
+  //       date: "2025-12-04",
+  //       name: "Michael Johnson",
+  //       enrolleeId: "2512345/2",
+  //       medications: "Albuterol inhaler",
+  //       diagnosis: "Asthma",
+  //       address: "789 Elm St, Port Harcourt",
+  //       status: "Sent to Pharmacy",
+  //       billed: false,
+  //     },
+  //     {
+  //       id: "4",
+  //       date: "2025-12-04",
+  //       name: "Sarah Williams",
+  //       enrolleeId: "2512345/3",
+  //       medications: "Amoxicillin 500mg",
+  //       diagnosis: "Bacterial Infection",
+  //       address: "321 Pine Rd, Ibadan",
+  //       status: "Sent for Delivery",
+  //       billed: true,
+  //     },
+  //     {
+  //       id: "5",
+  //       date: "2025-12-03",
+  //       name: "David Brown",
+  //       enrolleeId: "2512345/4",
+  //       medications: "Ibuprofen 400mg",
+  //       diagnosis: "Pain Management",
+  //       address: "654 Cedar Ln, Kano",
+  //       status: "Delivered",
+  //       billed: true,
+  //     },
+  //     {
+  //       id: "6",
+  //       date: "2025-12-03",
+  //       name: "Emily Davis",
+  //       enrolleeId: "2512345/5",
+  //       medications: "Omeprazole 20mg",
+  //       diagnosis: "GERD",
+  //       address: "987 Birch Ave, Enugu",
+  //       status: "Returned",
+  //       billed: false,
+  //     },
+  //   ];
+
+  //   setTimeout(() => {
+  //     setRequests(mockData);
+  //     setFilteredRequests(mockData);
+  //     setLoading(false);
+  //   }, 1000);
+
+  //   // TODO: Replace with Firestore real-time listener
+  //   // import { collection, onSnapshot, query } from 'firebase/firestore';
+  //   // const q = query(collection(db, 'medications'));
+  //   // const unsubscribe = onSnapshot(q, (snapshot) => {
+  //   //   const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as MedicationRequest));
+  //   //   setRequests(data);
+  //   //   setFilteredRequests(data);
+  //   //   setLastUpdate(new Date());
+  //   //   setLoading(false);
+  //   // });
+  //   // return () => unsubscribe();
+  // }, []);
 
   // Mock data - Replace with Firestore listener
   useEffect(() => {
@@ -113,6 +202,7 @@ const LiveTrackingPage: React.FC = () => {
     setTimeout(() => {
       setRequests(mockData);
       setFilteredRequests(mockData);
+      setLastUpdate(new Date());
       setLoading(false);
     }, 1000);
 
