@@ -217,7 +217,7 @@ const FormPage = () => {
                   type="tel"
                   {...register("phone")}
                   className="w-full border border-gray-300 rounded-lg p-3"
-                  placeholder="08012345678"
+                  placeholder="Enter Phone number"
                 />
                 {errors.phone && (
                   <p className="text-red-500 text-sm mt-1">
