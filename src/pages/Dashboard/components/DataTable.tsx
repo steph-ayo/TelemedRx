@@ -402,18 +402,20 @@ const DataTable: React.FC<DataTableProps> = ({
                         <button
                           onClick={() => handleSaveEdit(request.id)}
                           disabled={isSaving}
-                          className="text-green-600 hover:text-green-800 disabled:opacity-50"
+                          className="flex flex-row gap-1 text-green-600 hover:text-green-800 disabled:opacity-50 cursor-pointer"
                           title="Save"
                         >
                           <Save className="h-4 w-4" />
+                          Save
                         </button>
                         <button
                           onClick={handleCancelEdit}
                           disabled={isSaving}
-                          className="text-gray-600 hover:text-gray-800 disabled:opacity-50"
+                          className="flex flex-row gap-1 text-gray-600 hover:text-gray-800 disabled:opacity-50 cursor-pointer"
                           title="Cancel"
                         >
                           <X className="h-4 w-4" />
+                          Cancel
                         </button>
                       </div>
                     ) : (

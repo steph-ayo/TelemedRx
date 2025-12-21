@@ -118,30 +118,6 @@ const FormPage = () => {
           <p className="text-gray-600">Fill in all required information</p>
         </div>
 
-        {/* Success/Error Message */}
-        {message.type && (
-          <div
-            className={`mb-6 rounded-xl p-4 flex items-center gap-3 ${
-              message.type === "success"
-                ? "bg-green-50 border border-green-200"
-                : "bg-red-50 border border-red-200"
-            }`}
-          >
-            {message.type === "success" ? (
-              <CheckCircle2 className="text-green-600" size={24} />
-            ) : (
-              <AlertCircle className="text-red-600" size={24} />
-            )}
-            <p
-              className={`font-semibold ${
-                message.type === "success" ? "text-green-800" : "text-red-800"
-              }`}
-            >
-              {message.text}
-            </p>
-          </div>
-        )}
-
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
           {/* Patient Information */}
           <div className="bg-white rounded-2xl shadow-lg p-6 md:p-8">
@@ -344,12 +320,36 @@ const FormPage = () => {
             </div>
           </div>
 
+          {/* Success/Error Message */}
+          {message.type && (
+            <div
+              className={`mb-6 rounded-xl p-4 flex items-center gap-3 ${
+                message.type === "success"
+                  ? "bg-green-50 border border-green-200"
+                  : "bg-red-50 border border-red-200"
+              }`}
+            >
+              {message.type === "success" ? (
+                <CheckCircle2 className="text-green-600" size={24} />
+              ) : (
+                <AlertCircle className="text-red-600" size={24} />
+              )}
+              <p
+                className={`font-semibold ${
+                  message.type === "success" ? "text-green-800" : "text-red-800"
+                }`}
+              >
+                {message.text}
+              </p>
+            </div>
+          )}
+
           {/* Submit Button */}
           <div className="flex justify-center pb-8">
             <button
               type="submit"
               disabled={isSubmitting}
-              className="bg-primary hover:bg-primary disabled:bg-gray-400 disabled:cursor-not-allowed text-white font-semibold px-12 py-4 rounded-xl flex items-center gap-3 transition"
+              className="bg-primary hover:bg-primary cursor-pointer disabled:bg-gray-400 disabled:cursor-not-allowed text-white font-semibold px-12 py-4 rounded-xl flex items-center gap-3 transition"
             >
               {isSubmitting ? (
                 <>

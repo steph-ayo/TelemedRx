@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from "react";
 import { useLocation } from "react-router-dom";
-import { Menu, Bell, UserCircle, LogOut } from "lucide-react";
+import { Menu, Bell, LogOut } from "lucide-react";
 import { menuItems } from "./MenuItems";
 
 interface NavBarProps {
@@ -99,20 +99,12 @@ const NavBar: React.FC<NavBarProps> = ({ setIsOpen, handleSignOut }) => {
                     Signed in as
                   </p>
                   <p className="text-sm font-semibold text-gray-800 truncate">
-                    user@example.com
+                    pharmacybenefitmgt@leadway.com
                   </p>
                 </div>
 
                 {/* Menu Items */}
                 <div className="py-1">
-                  <a
-                    href="/Profile"
-                    className="flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 hover:text-primary transition-colors duration-150"
-                  >
-                    <UserCircle size={18} className="text-gray-400" />
-                    <span className="font-medium">My Profile</span>
-                  </a>
-
                   <a
                     onClick={handleSignOut}
                     className="flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-red-50 hover:text-red-600 transition-colors duration-150"
