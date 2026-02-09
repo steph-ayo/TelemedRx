@@ -140,7 +140,7 @@ const LoginPage = () => {
           </div>
 
           <div className="items-center justify-center ">
-            <form className="space-y-4">
+            <form onSubmit={signInWithEmail} className="space-y-4">
               {/* Email field */}
               <div>
                 <label className="block text-gray-600 mb-2">Email</label>
@@ -192,7 +192,7 @@ const LoginPage = () => {
 
               {/* Button to login */}
               <button
-                type="button"
+                type="submit"
                 className={`w-full font-semibold py-2 rounded-lg transition-all flex items-center justify-center gap-2 ${
                   isFormValid && !authing
                     ? "bg-red-500 text-white cursor-pointer"
